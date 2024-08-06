@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# This is a helper tool. This checks to see if there has been any changes to
+# the yarn.lock file; if there has, you get new changes; and then update the
+# dependencies of the project.
+
+FILE="yarn.lock"
+FILE_CHECKSUM=$(md5 -q $FILE)
+# is there a file called "checksum"?
+if [ -e "yarn_lock_checksum" ]
+then
+  # Get last known checksum from file
+  SAVED_CHECKSUM=$(cat yarn_lock_checksum)
+  # Compare new to old, if it's different
+  if [ "$SAVED_CHECKSUM" != "$FILE_CHECKSUM" ]
+  then
+    echo "Changes to $FILE"
+    # Install new changes, and if we're good, update the checksum
+    yarn install
+    md5 -q $FILE > yarn_lock_checksum
+  fi
+else
+  echo "No checksum file for $FILE, making one."
+  md5 -q $FILE > yarn_lock_checksum
+fi
